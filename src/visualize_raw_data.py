@@ -67,7 +67,7 @@ plt.legend()
 
 
 fig = plt.figure(figsize=(8, 6))
-ax = fig.add_subplot(111, projection='3d')
+ax = fig.add_subplot(111, projection="3d")
 
 limit = 1000
 x = x[:limit]
@@ -76,17 +76,17 @@ z = z[:limit]
 
 
 # Plot the accelerometer x, y, z data
-ax.scatter(x, y, z, c='b', marker='o', s=1)  # s=1 to make the points small and light
+ax.scatter(x, y, z, c="b", marker="o", s=1)  # s=1 to make the points small and light
 
 # Add lines crossing at (0, 0, 0)
-ax.plot([min(x), max(x)], [0, 0], [0, 0], color='gray', linestyle='--')  # X axis line
-ax.plot([0, 0], [min(y), max(y)], [0, 0], color='gray', linestyle='--')  # Y axis line
-ax.plot([0, 0], [0, 0], [min(z), max(z)], color='gray', linestyle='--')  # Z axis line
+ax.plot([min(x), max(x)], [0, 0], [0, 0], color="gray", linestyle="--")  # X axis line
+ax.plot([0, 0], [min(y), max(y)], [0, 0], color="gray", linestyle="--")  # Y axis line
+ax.plot([0, 0], [0, 0], [min(z), max(z)], color="gray", linestyle="--")  # Z axis line
 
 
-ax.set_xlabel('X')
-ax.set_ylabel('Y')
-ax.set_zlabel('Z')
-ax.set_title('3D Accelerometer Data for BK7610')
+ax.set_xlabel("X")
+ax.set_ylabel("Y")
+ax.set_zlabel("Z")
+ax.set_title("3D Accelerometer Data for BK7610")
 
 plt.show()

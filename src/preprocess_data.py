@@ -42,7 +42,7 @@ for pid in pids:
     dupes = pid_acc_data["time"].duplicated().sum()
     print(f"PID {pid} has {dupes} exact-duplicate timestamps")
     pid_acc_data = pid_acc_data.drop_duplicates("time")
-    
+
     modified_acc_data = pid_acc_data.set_index("time")
     modified_acc_data = modified_acc_data.drop(columns=["pid"])
 
@@ -55,15 +55,17 @@ for pid in pids:
         .ffill()  # carries first real value backward to start
         .bfill()  # carries last real value forward to end
     )
-    resampled_acc_data = resampled_acc_data.reset_index().rename(columns={"index": "time"})
+    resampled_acc_data = resampled_acc_data.reset_index().rename(
+        columns={"index": "time"}
+    )
     resampled_acc_data["pid"] = pid
 
     resampled_acc_data["second"] = resampled_acc_data["time"] // 1000
     counts = resampled_acc_data.groupby("second").size()
     valid_seconds = counts[counts == 40].index
-    resampled_acc_data = resampled_acc_data[resampled_acc_data["second"].isin(valid_seconds)].drop(
-        columns=["second"]
-    )
+    resampled_acc_data = resampled_acc_data[
+        resampled_acc_data["second"].isin(valid_seconds)
+    ].drop(columns=["second"])
 
     tac_data["timestamp"] = tac_data["timestamp"] * 1000
 
@@ -80,7 +82,7 @@ for pid in pids:
     merged["intoxicated"] = (merged["TAC_Reading"] > 0.08).astype(int)
 
     cleaned = merged[["time", "pid", "x", "y", "z", "intoxicated"]].copy()
-    
+
     all_combined.append(cleaned)
 
 final_df = pd.concat(all_combined, ignore_index=True)
