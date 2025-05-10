@@ -36,26 +36,29 @@ class MLPLightning(L.LightningModule):
     def training_step(self, batch, batch_idx):
         x, y = batch
         logits = self(x)
-        loss = self.loss_fn(logits, y.float().unsqueeze(1))
+        y_flattened = y.float().unsqueeze(1)
+        loss = self.loss_fn(logits, y_flattened)
         self.log("train_loss", loss, on_step=False, on_epoch=True)
         return loss
 
     def validation_step(self, batch, batch_idx):
         x, y = batch
         logits = self(x)
-        loss = self.loss_fn(logits, y.float().unsqueeze(1))
+        y_flattened = y.float().unsqueeze(1)
+        loss = self.loss_fn(logits, y_flattened)
         preds = torch.sigmoid(logits) > 0.5
-        acc = (preds == y.unsqueeze(1)).float().mean()
+        acc = (preds == y_flattened).float().mean()
         self.log_dict({"val_loss": loss, "val_acc": acc}, on_epoch=True)
         return loss
 
     def test_step(self, batch, batch_idx):
         x, y = batch
         logits = self(x)
-        loss = self.loss_fn(logits, y.float().unsqueeze(1))
+        y_flattened = y.float().unsqueeze(1)
+        loss = self.loss_fn(logits, y_flattened)
         preds = torch.sigmoid(logits) > 0.5
-        acc = (preds == y.unsqueeze(1)).float().mean()
-        self.log_dict({"test_loss": loss, "test_acc": acc}, on_epoch=True)
+        acc = (preds == y_flattened).float().mean()
+        self.log_dict({"val_loss": loss, "val_acc": acc}, on_epoch=True)
         return loss
 
     def configure_optimizers(self):

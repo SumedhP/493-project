@@ -86,6 +86,9 @@ class AccelDataLightning(L.LightningDataModule):
             self.train_data,
             batch_size=self.batch_size,
             shuffle=True,
+            num_workers=5,
+            persistent_workers=True,
+            pin_memory=True,
         )
 
     def val_dataloader(self):
@@ -93,6 +96,9 @@ class AccelDataLightning(L.LightningDataModule):
             self.val_data,
             batch_size=self.batch_size,
             shuffle=False,
+            num_workers=5,
+            persistent_workers=True,
+            pin_memory=True,
         )
 
     def test_dataloader(self):
@@ -100,6 +106,9 @@ class AccelDataLightning(L.LightningDataModule):
             self.test_data,
             batch_size=self.batch_size,
             shuffle=False,
+            num_workers=5,
+            persistent_workers=True,
+            pin_memory=True,
         )
 
 
@@ -130,6 +139,6 @@ if __name__ == "__main__":
         break
 
     # Write first 1000 rows of the dataset to a csv file
-    small_df = pd.DataFrame(df[:4000])
+    small_df = pd.DataFrame(df[:1_000_000])
     small_df.to_csv("../data/small_dataset.csv", index=False)
     print("Finished")
