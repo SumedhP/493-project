@@ -88,7 +88,6 @@ class AccelDataLightning(L.LightningDataModule):
             shuffle=True,
             num_workers=5,
             persistent_workers=True,
-            pin_memory=True,
         )
 
     def val_dataloader(self):
@@ -98,7 +97,6 @@ class AccelDataLightning(L.LightningDataModule):
             shuffle=False,
             num_workers=5,
             persistent_workers=True,
-            pin_memory=True,
         )
 
     def test_dataloader(self):
@@ -108,7 +106,6 @@ class AccelDataLightning(L.LightningDataModule):
             shuffle=False,
             num_workers=5,
             persistent_workers=True,
-            pin_memory=True,
         )
 
 

@@ -6,7 +6,7 @@ import lightning as L
 def main():
 
     print("Starting training...")
-    df = pd.read_csv("data/small_dataset.csv")
+    df = pd.read_csv("data/medium_dataset.csv")
     dataset = AccelDataLightning(df)
 
     model = MLPLightning()
