@@ -118,7 +118,7 @@ if __name__ == "__main__":
 
     print(f"Started at {time.time()}")
     start_time = time.time()
-    df = pd.read_csv("/data/combined_data.csv")
+    df = pd.read_csv("../data/combined_data.csv")
     print(f"Took {time.time() - start_time} seconds to read in the csv")
     print(f"The csv data has: {len(df)} points")
     print("Sample values:")
@@ -140,5 +140,5 @@ if __name__ == "__main__":
 
     # Write first 1000 rows of the dataset to a csv file
     small_df = pd.DataFrame(df[:1_000_000])
-    small_df.to_csv("../data/small_dataset.csv", index=False)
+    small_df.to_csv("../data/medium_dataset.csv", index=False)
     print("Finished")

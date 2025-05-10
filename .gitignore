@@ -1,2 +1,3 @@
 src/data/combined_data.csv
+src/data/medium_data.csv
 *.pyc
