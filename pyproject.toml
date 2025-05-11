@@ -8,6 +8,7 @@ dependencies = [
     "lightning>=2.5.1.post0",
     "matplotlib>=3.10.1",
     "numpy>=2.2.5",
+    "optuna>=4.3.0",
     "pandas>=2.2.3",
     "tensorboard>=2.19.0",
     "torch>=2.7.0",

@@ -79,17 +79,17 @@ class AccelDataLightning(L.LightningDataModule):
         train_index, val_index, test_index = random_split(
             range(N), [n_train, n_val, n_test]
         )
-        
+
         train_vecs = [full_dataset.data[i][0] for i in train_index]
         all_train = np.vstack(train_vecs)
         mean = all_train.mean(axis=0)  # shape (3,)
         std = all_train.std(axis=0)
-        
+
         for i, (X, y) in enumerate(full_dataset.data):
             # Normalize the data
             X = (X - mean) / std
             full_dataset.data[i] = (X, y)
-        
+
         self.train_data = Subset(full_dataset, train_index)
         self.val_data = Subset(full_dataset, val_index)
         self.test_data = Subset(full_dataset, test_index)
