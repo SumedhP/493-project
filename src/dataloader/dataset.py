@@ -70,16 +70,17 @@ class AccelDataLightning(L.LightningDataModule):
         self.batch_size = batch_size
 
     def setup(self, stage=None):
-        # Split into train (60%), val (20%), test (20%)
-        train_size = int(0.6 * len(self.data))
-        val_size = int(0.2 * len(self.data))
-        test_size = len(self.data) - train_size - val_size
-        self.train_data, self.val_data, self.test_data = random_split(
-            self.data, [train_size, val_size, test_size]
-        )
-        print(
-            f"Train size: {len(self.train_data)}, Val size: {len(self.val_data)}, Test size: {len(self.test_data)}"
-        )
+        if stage == "fit" or stage is None:
+            # Split into train (60%), val (20%), test (20%)
+            train_size = int(0.6 * len(self.data))
+            val_size = int(0.2 * len(self.data))
+            test_size = len(self.data) - train_size - val_size
+            self.train_data, self.val_data, self.test_data = random_split(
+                self.data, [train_size, val_size, test_size]
+            )
+            print(
+                f"Train size: {len(self.train_data)}, Val size: {len(self.val_data)}, Test size: {len(self.test_data)}"
+            )
 
     def train_dataloader(self):
         return DataLoader(

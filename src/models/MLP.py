@@ -58,7 +58,7 @@ class MLPLightning(L.LightningModule):
         loss = self.loss_fn(logits, y_flattened)
         preds = torch.sigmoid(logits) > 0.5
         acc = (preds == y_flattened).float().mean()
-        self.log_dict({"val_loss": loss, "val_acc": acc}, on_epoch=True)
+        self.log_dict({"test_loss": loss, "test_acc": acc}, on_epoch=True)
         return loss
 
     def configure_optimizers(self):
