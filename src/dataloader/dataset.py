@@ -117,8 +117,8 @@ class AccelDataLightning(L.LightningDataModule):
             self.val_data,
             batch_size=self.batch_size,
             shuffle=False,
-            num_workers=2,
-            persistent_workers=True,
+            # num_workers=2,
+            # persistent_workers=True,
         )
 
     def test_dataloader(self):
@@ -126,8 +126,8 @@ class AccelDataLightning(L.LightningDataModule):
             self.test_data,
             batch_size=self.batch_size,
             shuffle=False,
-            num_workers=2,
-            persistent_workers=True,
+            # num_workers=2,
+            # persistent_workers=True,
         )
 
 

@@ -75,10 +75,10 @@ def main():
     print("Starting hyperparameter optimization...")
     study.optimize(
         objective,
-        n_trials=100,
+        # n_trials=100,
         timeout=30 * 60,  # 30 minutes
         show_progress_bar=True,
-        n_jobs=-1
+        n_jobs=3
     )
     
     print(f"Number of finished trials: {len(study.trials)}")
