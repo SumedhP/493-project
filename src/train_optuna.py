@@ -40,12 +40,13 @@ def objective(trial: optuna.trial.Trial) -> float:
     early_stop = EarlyStopping(monitor="val_loss", patience=5, mode="min")
     pruning = PyTorchLightningPruningCallback(trial, monitor="val_loss")
 
-    tensorboard_logger = TensorBoardLogger(save_dir="optuna_logs")
+    tensorboard_logger = TensorBoardLogger(save_dir="optuna_logs", name="optuna_logs", default_hp_metric=False)
     trainer = L.Trainer(
         max_epochs=50,
         callbacks=[early_stop, pruning],
         enable_progress_bar=False,
-        logger=tensorboard_logger
+        logger=tensorboard_logger,
+        enable_model_summary=False,
     )
 
     # Fit and return validation loss
@@ -61,20 +62,23 @@ def main():
     global DF_ORIG
     DF_ORIG = df
 
-    pruner = optuna.pruners.MedianPruner()
-
+    lock_obj = optuna.storages.journal.JournalFileOpenLock("./optuna_journal_storage.log")
+    storage = optuna.storages.JournalStorage(
+        optuna.storages.journal.JournalFileBackend("./optuna_journal_storage.log", lock_obj=lock_obj),
+    )
+    
     study = optuna.create_study(
-        direction="maximize",
-        pruner=pruner,
+        storage=storage,
+        direction="maximize"
     )
     
     print("Starting hyperparameter optimization...")
     study.optimize(
         objective,
         n_trials=100,
-        timeout=600,  # 10 minutes
+        timeout=30 * 60,  # 30 minutes
         show_progress_bar=True,
-        n_jobs=2
+        n_jobs=-1
     )
     
     print(f"Number of finished trials: {len(study.trials)}")
