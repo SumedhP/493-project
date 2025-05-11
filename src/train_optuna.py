@@ -2,10 +2,10 @@ import pandas as pd
 from dataloader.dataset import AccelDataLightning
 from models.MLP import MLPLightning
 import lightning as L
-import time
 import optuna
 from optuna.integration import PyTorchLightningPruningCallback
 from lightning.pytorch.callbacks.early_stopping import EarlyStopping
+from lightning.pytorch.loggers import TensorBoardLogger
 
 DF_ORIG = None
 
@@ -19,8 +19,8 @@ def objective(trial: optuna.trial.Trial) -> float:
     for i in range(n_layers):
         dim = trial.suggest_int(f"layer_{i+1}_dim", 32, 512, log=True)
         layer_dims.append(dim)
-    lr = trial.suggest_loguniform("lr", 1e-5, 1e-2)
-    weight_decay = trial.suggest_loguniform("weight_decay", 1e-5, 1e-2)
+    lr = trial.suggest_float("lr", 1e-5, 1e-2, log=True)
+    weight_decay = trial.suggest_float("weight_decay", 1e-5, 1e-2, log=True)
 
     hyperparameters = dict(
         n_layers=n_layers,
@@ -40,11 +40,12 @@ def objective(trial: optuna.trial.Trial) -> float:
     early_stop = EarlyStopping(monitor="val_loss", patience=5, mode="min")
     pruning = PyTorchLightningPruningCallback(trial, monitor="val_loss")
 
+    tensorboard_logger = TensorBoardLogger(save_dir="optuna_logs")
     trainer = L.Trainer(
         max_epochs=50,
         callbacks=[early_stop, pruning],
         enable_progress_bar=False,
-        logger=False,
+        logger=tensorboard_logger
     )
 
     # Fit and return validation loss

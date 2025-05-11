@@ -815,6 +815,23 @@ wheels = [
 ]
 
 [[package]]
+name = "optuna-integration"
+version = "4.3.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "optuna" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/bd/0d/cef182fc1629f5ee902e349b5129924d2b4f37c4ea17ee6ead092b43b3fc/optuna_integration-4.3.0.tar.gz", hash = "sha256:3f7038f3cba84f00e9229078f0ea8dca8983fa2079e1d0457d5082d034829ff9", size = 85870, upload-time = "2025-04-14T05:03:38.135Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c6/9b/70808bac453d37fc630e4dbdcb2d4d543673438b8a7b15146e936b89bcce/optuna_integration-4.3.0-py3-none-any.whl", hash = "sha256:c4d0c955fd2fc11b2dd32eb33d1ded0c0f23ad52232e31592620671ece2f08a8", size = 98468, upload-time = "2025-04-14T05:03:36.583Z" },
+]
+
+[package.optional-dependencies]
+pytorch-lightning = [
+    { name = "lightning" },
+]
+
+[[package]]
 name = "packaging"
 version = "24.2"
 source = { registry = "https://pypi.org/simple" }
@@ -907,6 +924,7 @@ dependencies = [
     { name = "matplotlib" },
     { name = "numpy" },
     { name = "optuna" },
+    { name = "optuna-integration", extra = ["pytorch-lightning"] },
     { name = "pandas" },
     { name = "tensorboard" },
     { name = "torch" },
@@ -920,6 +938,7 @@ requires-dist = [
     { name = "matplotlib", specifier = ">=3.10.1" },
     { name = "numpy", specifier = ">=2.2.5" },
     { name = "optuna", specifier = ">=4.3.0" },
+    { name = "optuna-integration", extras = ["pytorch-lightning"], specifier = ">=4.3.0" },
     { name = "pandas", specifier = ">=2.2.3" },
     { name = "tensorboard", specifier = ">=2.19.0" },
     { name = "torch", specifier = ">=2.7.0" },

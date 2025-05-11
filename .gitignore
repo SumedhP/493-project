@@ -3,3 +3,4 @@ src/data/medium_dataset.csv
 *.pyc
 *.yaml
 src/lightning_logs/*
+src/optuna_logs/*
