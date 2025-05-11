@@ -13,7 +13,7 @@ class MLP(nn.Module):
             nn.Linear(INPUT_DIM, 256),
             nn.LeakyReLU(),
             nn.Linear(256, 64),
-            nn.ReLU(),
+            nn.LeakyReLU(),
             nn.Linear(64, 1),
         )
 

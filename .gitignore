@@ -2,5 +2,4 @@ src/data/combined_data.csv
 src/data/medium_dataset.csv
 *.pyc
 *.yaml
-events.out.*
-epoch=*
+src/lightning_logs/*
