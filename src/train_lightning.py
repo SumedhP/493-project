@@ -4,18 +4,19 @@ from models.MLP import MLPLightning
 import lightning as L
 import time
 
+
 def main():
 
-    print("Starting training...")
-    # df = pd.read_csv("data/medium_dataset.csv")
-    df = pd.read_csv("data/combined_data.csv")
-    dataset = AccelDataLightning(df)
+    print("Loading in data...")
+    df = pd.read_csv("data/medium_dataset.csv")
+    # df = pd.read_csv("data/combined_data.csv")
+    dataset = AccelDataLightning(df, sliding_window_stride=10, batch_size=10)
 
     model = MLPLightning()
-    trainer = L.Trainer(max_epochs=10)
+    trainer = L.Trainer(max_epochs=40)
 
     start_time = time.time()
-
+    print("Starting training...")
     trainer.fit(model, datamodule=dataset)
     print("Finished training.")
     print("Starting testing...")
@@ -25,7 +26,9 @@ def main():
     print(f"Total time spent training: {time.time() - start_time} seconds")
     print("Finished.")
 
+
 if __name__ == "__main__":
     from multiprocessing import freeze_support
-    freeze_support() # This iss needed for lightning not to crash on Windows
+
+    freeze_support()  # This iss needed for lightning not to crash on Windows
     main()

@@ -1,6 +1,6 @@
 import pandas as pd
 import torch
-from torch.utils.data import Dataset, random_split, DataLoader
+from torch.utils.data import Dataset, random_split, DataLoader, Subset
 import numpy as np
 import lightning as L
 
@@ -61,26 +61,47 @@ class AccelDataLightning(L.LightningDataModule):
         batch_size: int = 32,
     ):
         super().__init__()
-        self.data = AccelDataset(
+
+        full_dataset = AccelDataset(
             df,
             sliding_window_size=sliding_window_size,
             sliding_window_stride=sliding_window_stride,
             hz=hz,
         )
+
+        N = len(full_dataset)
+
+        n_train = int(0.6 * N)
+        n_val = int(0.2 * N)
+        n_test = N - n_train - n_val
+
+        # Split indexes
+        train_index, val_index, test_index = random_split(
+            range(N), [n_train, n_val, n_test]
+        )
+        
+        train_vecs = [full_dataset.data[i][0] for i in train_index]
+        all_train = np.vstack(train_vecs)
+        mean = all_train.mean(axis=0)  # shape (3,)
+        std = all_train.std(axis=0)
+        
+        for i, (X, y) in enumerate(full_dataset.data):
+            # Normalize the data
+            X = (X - mean) / std
+            full_dataset.data[i] = (X, y)
+        
+        self.train_data = Subset(full_dataset, train_index)
+        self.val_data = Subset(full_dataset, val_index)
+        self.test_data = Subset(full_dataset, test_index)
+
+        print(
+            f"Train size: {len(self.train_data)}, Val size: {len(self.val_data)}, Test size: {len(self.test_data)}"
+        )
+
         self.batch_size = batch_size
 
     def setup(self, stage=None):
-        if stage == "fit" or stage is None:
-            # Split into train (60%), val (20%), test (20%)
-            train_size = int(0.6 * len(self.data))
-            val_size = int(0.2 * len(self.data))
-            test_size = len(self.data) - train_size - val_size
-            self.train_data, self.val_data, self.test_data = random_split(
-                self.data, [train_size, val_size, test_size]
-            )
-            print(
-                f"Train size: {len(self.train_data)}, Val size: {len(self.val_data)}, Test size: {len(self.test_data)}"
-            )
+        pass
 
     def train_dataloader(self):
         return DataLoader(

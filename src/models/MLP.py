@@ -4,7 +4,7 @@ import lightning as L
 
 
 class MLP(nn.Module):
-    def __init__(self, lr=1e-3):
+    def __init__(self):
         super().__init__()
 
         INPUT_DIM = 400 * 3
@@ -27,7 +27,7 @@ class MLPLightning(L.LightningModule):
         super().__init__()
         self.save_hyperparameters()
 
-        self.model = MLP(lr)
+        self.model = MLP()
         self.loss_fn = nn.BCEWithLogitsLoss()
 
     def forward(self, x):
@@ -38,7 +38,9 @@ class MLPLightning(L.LightningModule):
         logits = self(x)
         y_flattened = y.float().unsqueeze(1)
         loss = self.loss_fn(logits, y_flattened)
-        self.log("train_loss", loss, on_step=False, on_epoch=True)
+        preds = torch.sigmoid(logits) > 0.5
+        acc = (preds == y_flattened).float().mean()
+        self.log_dict({"train_loss": loss, "train_acc": acc}, on_epoch=True)
         return loss
 
     def validation_step(self, batch, batch_idx):
