@@ -108,7 +108,7 @@ class AccelDataLightning(L.LightningDataModule):
             self.train_data,
             batch_size=self.batch_size,
             shuffle=True,
-            num_workers=5,
+            num_workers=2,
             persistent_workers=True,
         )
 
@@ -117,7 +117,7 @@ class AccelDataLightning(L.LightningDataModule):
             self.val_data,
             batch_size=self.batch_size,
             shuffle=False,
-            num_workers=5,
+            num_workers=2,
             persistent_workers=True,
         )
 
@@ -126,7 +126,7 @@ class AccelDataLightning(L.LightningDataModule):
             self.test_data,
             batch_size=self.batch_size,
             shuffle=False,
-            num_workers=5,
+            num_workers=2,
             persistent_workers=True,
         )
 
