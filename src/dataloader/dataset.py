@@ -87,8 +87,8 @@ class AccelDataLightning(L.LightningDataModule):
             self.train_data,
             batch_size=self.batch_size,
             shuffle=True,
-            num_workers=5,
-            persistent_workers=True,
+            # num_workers=5,
+            # persistent_workers=True,
         )
 
     def val_dataloader(self):

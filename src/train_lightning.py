@@ -7,11 +7,12 @@ import time
 def main():
 
     print("Starting training...")
-    df = pd.read_csv("data/medium_dataset.csv")
+    # df = pd.read_csv("data/medium_dataset.csv")
+    df = pd.read_csv("data/combined_data.csv")
     dataset = AccelDataLightning(df)
 
     model = MLPLightning()
-    trainer = L.Trainer(max_epochs=100)
+    trainer = L.Trainer(max_epochs=10)
 
     start_time = time.time()
 
