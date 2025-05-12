@@ -3,7 +3,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 pids = [
-    "JB3156",
     "BK7610",
     "BU4707",
     "CC6740",
@@ -36,12 +35,59 @@ def clean_up_data(pid_acc_data : pd.DataFrame, pid_tac_data : pd.DataFrame):
     times_ms = df_acc["time"].values
     
     df_tac = pid_tac_data.copy()
-    df_tac["timestamp"] = df_tac["timestamp"] * 1000 # Convert to ms
+    df_tac["timestamp"] = (df_tac["timestamp"] * 1000).astype(np.int64) # Convert to ms
     start_time, end_time = df_tac["timestamp"].min(), df_tac["timestamp"].max()
     
+    time_diff = np.diff(df_acc["time"]) / 1000.0 # Get gaps in s
+    gaps = np.where(time_diff >= 1)[0] # Get where theres gaps in the data
+    boundaries = np.concatenate(([0], gaps + 1, [len(df_acc)]))
+    segments = []
+    
+    for i in range(len(boundaries) - 1):
+        seg = df_acc.iloc[boundaries[i]:boundaries[i+1]] # Get segment
+        duration = (seg["time"].iloc[-1] - seg["time"].iloc[0]) / 1000.0 # Get duration in s
+        if duration >= 10.0:
+            # Only accept long segments
+            segments.append(seg)
     
     
-    ...
+    if not segments:
+        raise Exception("This person has no useable segments")
+    
+    # 4. Resample each segment to 40Hz
+    resampled_list = []
+    for segment in segments:
+        segment = segment.set_index("time")[['x','y','z']]
+        t0, t1 = segment.index.min(), segment.index.max()
+        # Align to next full second and previous full second
+        start_ms = int(np.ceil(t0 / 1000.0) * 1000)
+        end_ms = int(np.floor(t1 / 1000.0) * 1000)
+        if end_ms <= start_ms:
+            continue
+        idx = np.arange(segment.index.min(), segment.index.max(), 25)
+        resample_segment = (segment.reindex(idx)
+                  .interpolate()
+                  .ffill()
+                  .bfill()
+                 )
+        resample_segment = resample_segment.reset_index().rename(columns={"index": "time"})
+        resampled_list.append(resample_segment)
+
+    resampled = pd.concat(resampled_list, ignore_index=True)
+    resampled["pid"] = pid_acc_data["pid"].iat[0]
+    resampled["time"] = resampled["time"].round().astype(np.int64)
+
+    # Merge with TAC data
+    merged = pd.merge_asof(
+        resampled.sort_values("time"),
+        df_tac.sort_values("timestamp"),
+        left_on="time", right_on="timestamp",
+        direction="backward"
+    )
+    
+    # 6. Setup intoxication boolean
+    merged["intoxicated"] = (merged["TAC_Reading"] > 0.08).astype(int)
+    return merged[["time","pid","x","y","z","intoxicated"]]
 
 
 all_combined = []
@@ -49,79 +95,22 @@ all_combined = []
 for pid in pids:
     print()
     print(f"Looking at pid {pid}")
-    PID_TAC_FILE = f"data/clean_tac/{pid}_clean_TAC.csv"
-    tac_data = pd.read_csv(PID_TAC_FILE)
-
-    """
-    Example data:
-    1493737156832,BK7610,-0.1353,0.2467,0.1022
-    1493737156859,BK7610,-0.0811,0.3475,0.162
-    """
+    
+    tac_file = f"data/clean_tac/{pid}_clean_TAC.csv"
+    tac_data = pd.read_csv(tac_file)
 
     pid_acc_data = acc_data[acc_data["pid"] == pid].copy()
-    time = pid_acc_data["time"]
-
-    # Get rid of duplicate timestamp values
-    dupes = pid_acc_data["time"].duplicated().sum()
-    print(f"PID {pid} has {dupes} exact-duplicate timestamps")
-    pid_acc_data = pid_acc_data.drop_duplicates("time")
-
-    modified_acc_data = pid_acc_data.set_index("time")
-    modified_acc_data = modified_acc_data.drop(columns=["pid"])
-    
-    # Show the current values before modification
-    acc_time = pid_acc_data["time"].copy()
-    acc_time /= 1000
-    
-    # Print the largest gaps in acceleration data
-    acc_time_diff = acc_time.diff().dropna()
-    print("Largest gaps in acceleration data:")
-    print(acc_time_diff.nlargest(20))
-    
-    acc_start_time = min(acc_time)
-    acc_end_time = max(acc_time)
-    
-    new_index = np.arange(pid_acc_data["time"].min(), pid_acc_data["time"].max(), 25)
-
-    resampled_acc_data = (
-        modified_acc_data.reindex(new_index)
-        .infer_objects(copy=False)
-        .interpolate()  # Make up data wahoo
-        .ffill()  # carries first real value backward to start
-        .bfill()  # carries last real value forward to end
-    )
-    resampled_acc_data = resampled_acc_data.reset_index().rename(
-        columns={"index": "time"}
-    )
-    resampled_acc_data["pid"] = pid
-
-    resampled_acc_data["second"] = resampled_acc_data["time"] // 1000
-    counts = resampled_acc_data.groupby("second").size()
-    valid_seconds = counts[counts == 40].index
-    resampled_acc_data = resampled_acc_data[
-        resampled_acc_data["second"].isin(valid_seconds)
-    ].drop(columns=["second"])
-
-    tac_data["timestamp"] = tac_data["timestamp"] * 1000
-
-    # LEFT OUTER JOIN TIME
-    merged = pd.merge_asof(
-        resampled_acc_data,
-        tac_data,
-        left_on="time",
-        right_on="timestamp",
-        direction="backward",
-        suffixes=("", "_tac"),
-    )
-
-    merged["intoxicated"] = (merged["TAC_Reading"] > 0.08).astype(int)
-
-    cleaned = merged[["time", "pid", "x", "y", "z", "intoxicated"]].copy()
-
+    cleaned = clean_up_data(pid_acc_data, tac_data)
+    print("Created dataset with datapoints: ", len(cleaned))
     all_combined.append(cleaned)
 
-# final_df = pd.concat(all_combined, ignore_index=True)
-# final_df.to_csv("combined_data.csv", index=False)
+final_df = pd.concat(all_combined, ignore_index=True)
+print("Created BIG DATASET with datapoints: ", len(final_df))
 
-# print(final_df)
-# print(final_df["intoxicated"].mean())
+final_df.to_csv("combined_dataset.csv", index=False)
+
+small_dataset = final_df[:1_000_000].copy()
+small_dataset.to_csv("small_dataset.csv", index=False)
+
+print(final_df)
+print(final_df["intoxicated"].mean())
