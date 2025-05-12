@@ -1,6 +1,6 @@
 import pandas as pd
 from dataloader.dataset import AccelDataLightning
-# from models.MLP import MLPLightning
+from models.MLP import MLPLightning
 from models.CNN import CNNLightning
 import lightning as L
 import time
@@ -9,11 +9,12 @@ import time
 def main():
 
     print("Loading in data...")
-    df = pd.read_csv("data/medium_dataset.csv")
+    df = pd.read_csv("data/small_dataset.csv")
     # df = pd.read_csv("data/combined_data.csv")
-    dataset = AccelDataLightning(df, sliding_window_stride=10, batch_size=64)
+    dataset = AccelDataLightning(df, sliding_window_stride=10, batch_size=16)
 
-    model = CNNLightning()
+    model = MLPLightning()
+    # model = CNNLightning()
     trainer = L.Trainer(max_epochs=100)
 
     start_time = time.time()

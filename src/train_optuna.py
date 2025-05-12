@@ -14,26 +14,24 @@ def objective(trial: optuna.trial.Trial) -> float:
     df = DF_ORIG.copy()
 
     # Suggest hyperparameters
-    n_layers = trial.suggest_int("n_layers", 1, 4)
+    n_layers = trial.suggest_int("n_layers", 1, 10)
     layer_dims = []
     for i in range(n_layers):
-        dim = trial.suggest_int(f"layer_{i+1}_dim", 32, 512, log=True)
+        dim = trial.suggest_int(f"layer_{i+1}_dim", 8, 256, log=True)
         layer_dims.append(dim)
-    lr = trial.suggest_float("lr", 1e-5, 1e-2, log=True)
-    weight_decay = trial.suggest_float("weight_decay", 1e-5, 1e-2, log=True)
+    weight_decay = trial.suggest_float("weight_decay", 1e-5, 1e-1, log=True)
 
     hyperparameters = dict(
         n_layers=n_layers,
         layer_dims=layer_dims,
-        lr=lr,
         weight_decay=weight_decay,
     )
 
     # DataModule (uses df copy)
-    datamodule = AccelDataLightning(df, sliding_window_stride=10, batch_size=10)
+    datamodule = AccelDataLightning(df, sliding_window_stride=1, batch_size=64)
 
     # Model
-    model = MLPLightning(layer_dims, lr, weight_decay)
+    model = MLPLightning(layer_dims, weight_decay=weight_decay)
 
     # Callbacks: early stopping + pruning
 
@@ -57,8 +55,8 @@ def objective(trial: optuna.trial.Trial) -> float:
 
 def main():
     print("Loading in data...")
-    df = pd.read_csv("data/combined_data.csv")
-    # df = pd.read_csv("data/medium_dataset.csv")
+    # df = pd.read_csv("data/combined_data.csv")
+    df = pd.read_csv("data/small_dataset.csv")
 
     global DF_ORIG
     DF_ORIG = df
@@ -76,8 +74,8 @@ def main():
     print("Starting hyperparameter optimization...")
     study.optimize(
         objective,
-        # n_trials=100,
-        timeout=60 * 60 * 2,  # 2 hr
+        n_trials=1000,
+        timeout=15 * 60 * 1,  # 15 minutes
         show_progress_bar=True,
         n_jobs=3
     )

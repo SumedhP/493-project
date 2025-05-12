@@ -39,7 +39,7 @@ class AccelDataset(Dataset):
 
         labels = [label for _, label in self.data]
         label_counts = np.bincount(labels)
-        # print(f"Created dataset. Label counts: {label_counts}")
+        print(f"Created dataset. Label counts: {label_counts}")
 
     def __len__(self):
         return len(self.data)
@@ -94,9 +94,9 @@ class AccelDataLightning(L.LightningDataModule):
         self.val_data = Subset(full_dataset, val_index)
         self.test_data = Subset(full_dataset, test_index)
 
-        # print(
-        #     f"Train size: {len(self.train_data)}, Val size: {len(self.val_data)}, Test size: {len(self.test_data)}"
-        # )
+        print(
+            f"Train size: {len(self.train_data)}, Val size: {len(self.val_data)}, Test size: {len(self.test_data)}"
+        )
 
         self.batch_size = batch_size
 
