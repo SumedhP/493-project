@@ -57,7 +57,8 @@ def objective(trial: optuna.trial.Trial) -> float:
 
 def main():
     print("Loading in data...")
-    df = pd.read_csv("data/medium_dataset.csv")
+    df = pd.read_csv("data/combined_data.csv")
+    # df = pd.read_csv("data/medium_dataset.csv")
 
     global DF_ORIG
     DF_ORIG = df
@@ -76,7 +77,7 @@ def main():
     study.optimize(
         objective,
         # n_trials=100,
-        timeout=30 * 60,  # 30 minutes
+        timeout=60 * 60 * 2,  # 2 hr
         show_progress_bar=True,
         n_jobs=3
     )
@@ -94,3 +95,15 @@ if __name__ == "__main__":
 
     freeze_support()  # This iss needed for lightning not to crash on Windows
     main()
+
+"""
+Number of finished trials: 35
+Best trial: 0.6722532510757446
+Best hyperparameters:
+  n_layers: 3
+  layer_1_dim: 34
+  layer_2_dim: 36
+  layer_3_dim: 194
+  lr: 0.0009945382033371669
+  weight_decay: 0.000556120150912317
+"""
