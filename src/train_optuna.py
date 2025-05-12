@@ -14,15 +14,14 @@ def objective(trial: optuna.trial.Trial) -> float:
     df = DF_ORIG.copy()
 
     # Suggest hyperparameters
-    n_layers = trial.suggest_int("n_layers", 1, 10)
+    n_layers = 5
     layer_dims = []
     for i in range(n_layers):
-        dim = trial.suggest_int(f"layer_{i+1}_dim", 8, 256, log=True)
+        dim = trial.suggest_int(f"layer_{i+1}_dim", 32, 200, log=True)
         layer_dims.append(dim)
-    weight_decay = trial.suggest_float("weight_decay", 1e-5, 1e-1, log=True)
+    weight_decay = trial.suggest_float("weight_decay", 1e-5, 1e-3, log=True)
 
     hyperparameters = dict(
-        n_layers=n_layers,
         layer_dims=layer_dims,
         weight_decay=weight_decay,
     )
@@ -105,4 +104,22 @@ Best hyperparameters:
   layer_3_dim: 194
   lr: 0.0009945382033371669
   weight_decay: 0.000556120150912317
+  
+n_layers 5
+layer_1_dim 31
+layer_2_dim 128
+layer_3_dim 41
+layer_4_dim 174
+layer_5_dim 41
+weight_decay 9.649623360646725e-05
+
+Number of finished trials: 61
+Best trial: 0.8051220774650574
+Best hyperparameters:
+  layer_1_dim: 156
+  layer_2_dim: 198
+  layer_3_dim: 59
+  layer_4_dim: 51
+  layer_5_dim: 33
+  weight_decay: 1.0631590898739607e-05
 """
