@@ -97,6 +97,7 @@ if __name__ == "__main__":
     main()
 
 """
+MLP:
 Number of finished trials: 35
 Best trial: 0.6722532510757446
 Best hyperparameters:
