@@ -107,10 +107,11 @@ for pid in pids:
 final_df = pd.concat(all_combined, ignore_index=True)
 print("Created BIG DATASET with datapoints: ", len(final_df))
 
+print(final_df)
+print(final_df["intoxicated"].mean())
+
 final_df.to_csv("combined_dataset.csv", index=False)
 
 small_dataset = final_df[:1_000_000].copy()
 small_dataset.to_csv("small_dataset.csv", index=False)
 
-print(final_df)
-print(final_df["intoxicated"].mean())
