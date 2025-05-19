@@ -1,39 +1,58 @@
-from typing import List
 import torch
 import torch.nn as nn
 import lightning as L
 
 
 class CNN(nn.Module):
-    def __init__(self, conv_out_channels=64, dropout_prob=0.5):
+    def __init__(
+        self,
+        conv_channels: list[int] = [64, 128, 256],
+    ):
         super().__init__()
+        self.conv_blocks = nn.ModuleList()
+        in_ch = 3
+        for out_ch in conv_channels:
+            block = nn.Sequential(
+                nn.Conv1d(in_channels=in_ch, out_channels=out_ch, kernel_size=3, padding=1),
+                nn.BatchNorm1d(out_ch),
+                nn.ReLU(),
+                nn.MaxPool1d(2),
+                nn.Dropout(),
+            )
+            self.conv_blocks.append(block)
+            in_ch = out_ch
 
-        # Initial conv block
-        self.feature_extractor = nn.Sequential(
-            nn.Conv1d(in_channels=3, out_channels=conv_out_channels, kernel_size=3, padding=1),
-            nn.BatchNorm1d(conv_out_channels),
-            nn.LeakyReLU(),
-            nn.Dropout(dropout_prob),
-        )
+        # Calculate flattened size
+        dummy = torch.zeros(1, 3, 400)
+        with torch.no_grad():
+            for block in self.conv_blocks:
+                dummy = block(dummy)
+        flat_size = dummy.view(1, -1).size(1)
 
-        # Pass through a fake input to figure out the output size
-        dummy_input = torch.zeros(1, 3, 400)
-        flat_size = self.feature_extractor(dummy_input).view(1, -1).size(1)
+        self.classifier = nn.Sequential(nn.Flatten(), nn.Linear(flat_size, 1))
 
-        # Make it all into one now
-        self.model = nn.Sequential(self.feature_extractor, nn.Flatten(), nn.Linear(flat_size, 1))
-
-    def forward(self, x):
-        x = x.permute(0, 2, 1)  # (N, 400, 3) -> (N, 3, 400) to make it fit input proper
-        return self.model(x)
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        # x shape: (batch, seq_len, channels)
+        x = x.permute(0, 2, 1)  # to (batch, channels, seq_len)
+        for block in self.conv_blocks:
+            x = block(x)
+        logits = self.classifier(x)
+        return logits
 
 
 class CNNLightning(L.LightningModule):
-    def __init__(self, conv_out_channels=64, dropout_prob=0.5, lr=1e-3, weight_decay=0.0):
+    def __init__(
+        self,
+        conv_channels: list[int] = [64, 128, 256, 1024],
+        lr: float = 1e-3,
+        weight_decay: float = 0.0,
+    ):
         super().__init__()
         self.save_hyperparameters()
 
-        self.model = CNN(conv_out_channels, dropout_prob)
+        self.model = CNN(
+            conv_channels=conv_channels
+        )
         self.loss_fn = nn.BCEWithLogitsLoss()
 
     def forward(self, x):
