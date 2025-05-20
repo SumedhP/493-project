@@ -9,23 +9,45 @@ class CNN(nn.Module):
         super().__init__()
 
         # Initial conv block
+        # self.feature_extractor = nn.Sequential(
+        #     nn.Conv1d(in_channels=3, out_channels=conv_out_channels, kernel_size=3, padding=1),
+        #     nn.BatchNorm1d(conv_out_channels),
+        #     nn.LeakyReLU(),
+        #     nn.Dropout(dropout_prob),
+        # )
+
         self.feature_extractor = nn.Sequential(
-            nn.Conv1d(in_channels=3, out_channels=conv_out_channels, kernel_size=3, padding=1),
-            nn.BatchNorm1d(conv_out_channels),
-            nn.LeakyReLU(),
-            nn.Dropout(dropout_prob),
+            nn.Conv1d(in_channels=3, out_channels=conv_out_channels, kernel_size=6),
+            nn.ReLU(),
+            nn.MaxPool1d(kernel_size=2),
+            nn.BatchNorm1d(conv_out_channels)
         )
 
-        # Pass through a fake input to figure out the output size
+        conv_output_length = 77
+
+        # # Pass through a fake input to figure out the output size
         dummy_input = torch.zeros(1, 3, 400)
         flat_size = self.feature_extractor(dummy_input).view(1, -1).size(1)
 
-        # Make it all into one now
-        self.model = nn.Sequential(self.feature_extractor, nn.Flatten(), nn.Linear(flat_size, 1))
+        # # Make it all into one now
+        # self.model = nn.Sequential(self.feature_extractor, nn.Flatten(), nn.Linear(flat_size, 1))
+        self.classifier = nn.Sequential(
+            nn.Linear(flat_size, 1028),
+            nn.ReLU(),
+            nn.Dropout(0.5),
+            nn.Linear(1028, 1)  # Output: 2 classes (intoxicated, sober)
+        )
+        # test_acc: 0.6380000114440918
+
 
     def forward(self, x):
         x = x.permute(0, 2, 1)  # (N, 400, 3) -> (N, 3, 400) to make it fit input proper
-        return self.model(x)
+        # return self.model(x)
+
+        x = self.feature_extractor(x)
+        x = x.view(x.size(0), -1) # Flatten
+        x = self.classifier(x)
+        return x
 
 
 class CNNLightning(L.LightningModule):

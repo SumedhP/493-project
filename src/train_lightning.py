@@ -4,9 +4,16 @@ from models.MLP import MLPLightning
 from models.CNN import CNNLightning
 import lightning as L
 import time
+import torch
 
 
 def main():
+    if torch.cuda.is_available():
+        device = torch.device('cuda')
+    else:
+        device = torch.device('cpu')
+    print('using device:', device)
+
 
     print("Loading in data...")
     # df = pd.read_csv("data/small_dataset.csv")
@@ -16,7 +23,7 @@ def main():
 
     # model = MLPLightning()
     model = CNNLightning()
-    trainer = L.Trainer(max_epochs=100)
+    trainer = L.Trainer(max_epochs=100, accelerator="gpu", devices=1)
 
     start_time = time.time()
     print("Starting training...")
