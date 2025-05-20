@@ -1,6 +1,7 @@
 import pandas as pd
 from dataloader.dataset import AccelDataLightning
 from models.MLP import MLPLightning
+from models.CNN import CNNLightning
 import lightning as L
 import optuna
 from optuna.integration import PyTorchLightningPruningCallback
@@ -30,7 +31,8 @@ def objective(trial: optuna.trial.Trial) -> float:
     datamodule = AccelDataLightning(df, sliding_window_stride=1, batch_size=64)
 
     # Model
-    model = MLPLightning(layer_dims, weight_decay=weight_decay)
+    # model = MLPLightning(layer_dims, weight_decay=weight_decay)
+    model = CNNLightning(layer_dims, weight_decay=weight_decay)
 
     # Callbacks: early stopping + pruning
 
@@ -55,7 +57,8 @@ def objective(trial: optuna.trial.Trial) -> float:
 def main():
     print("Loading in data...")
     # df = pd.read_csv("data/combined_data.csv")
-    df = pd.read_csv("data/small_dataset.csv")
+    # df = pd.read_csv("data/small_dataset.csv")
+    df = pd.read_csv("src/data/small_dataset.csv")
 
     global DF_ORIG
     DF_ORIG = df
