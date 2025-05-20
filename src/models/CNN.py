@@ -1,11 +1,13 @@
-from typing import List
 import torch
 import torch.nn as nn
 import lightning as L
 
 
 class CNN(nn.Module):
-    def __init__(self, conv_out_channels=64, dropout_prob=0.5):
+    def __init__(
+        self,
+        conv_channels: list[int] = [64, 128, 256],
+    ):
         super().__init__()
 
         # Initial conv block
@@ -51,11 +53,18 @@ class CNN(nn.Module):
 
 
 class CNNLightning(L.LightningModule):
-    def __init__(self, conv_out_channels=64, dropout_prob=0.5, lr=1e-3, weight_decay=0.0):
+    def __init__(
+        self,
+        conv_channels: list[int] = [64, 128, 256, 1024],
+        lr: float = 1e-3,
+        weight_decay: float = 0.0,
+    ):
         super().__init__()
         self.save_hyperparameters()
 
-        self.model = CNN(conv_out_channels, dropout_prob)
+        self.model = CNN(
+            conv_channels=conv_channels
+        )
         self.loss_fn = nn.BCEWithLogitsLoss()
 
     def forward(self, x):

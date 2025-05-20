@@ -15,10 +15,10 @@ def objective(trial: optuna.trial.Trial) -> float:
     df = DF_ORIG.copy()
 
     # Suggest hyperparameters
-    n_layers = 5
+    n_layers = trial.suggest_int(f"layers", 1, 3)
     layer_dims = []
     for i in range(n_layers):
-        dim = trial.suggest_int(f"layer_{i+1}_dim", 32, 200, log=True)
+        dim = trial.suggest_int(f"layer_{i+1}_dim", 5, 128, log=True)
         layer_dims.append(dim)
     weight_decay = trial.suggest_float("weight_decay", 1e-5, 1e-3, log=True)
 
@@ -26,6 +26,8 @@ def objective(trial: optuna.trial.Trial) -> float:
         layer_dims=layer_dims,
         weight_decay=weight_decay,
     )
+    
+    print("Training with hyperparameters: ", hyperparameters)
 
     # DataModule (uses df copy)
     datamodule = AccelDataLightning(df, sliding_window_stride=1, batch_size=64)
@@ -50,7 +52,9 @@ def objective(trial: optuna.trial.Trial) -> float:
 
     # Fit and return validation loss
     trainer.logger.log_hyperparams(hyperparameters)
+    print("Starting a training")
     trainer.fit(model, datamodule=datamodule)
+    
     return trainer.callback_metrics["val_acc"].item()
 
 
@@ -76,8 +80,8 @@ def main():
     print("Starting hyperparameter optimization...")
     study.optimize(
         objective,
-        n_trials=1000,
-        timeout=15 * 60 * 1,  # 15 minutes
+        n_trials=100,
+        timeout=20 * 60 * 1,  # 10 minutes
         show_progress_bar=True,
         n_jobs=3
     )

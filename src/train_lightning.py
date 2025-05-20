@@ -1,6 +1,5 @@
 import pandas as pd
 from dataloader.dataset import AccelDataLightning
-from models.MLP import MLPLightning
 from models.CNN import CNNLightning
 import lightning as L
 import time
