@@ -22,7 +22,8 @@ def main():
 
     # model = MLPLightning()
     model = CNNLightning()
-    trainer = L.Trainer(max_epochs=100, accelerator="gpu", devices=1)
+    # trainer = L.Trainer(max_epochs=100, accelerator="gpu", devices=1)
+    trainer = L.Trainer(max_epochs=100)
 
     start_time = time.time()
     print("Starting training...")

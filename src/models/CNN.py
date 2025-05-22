@@ -4,67 +4,80 @@ import lightning as L
 
 
 class CNN(nn.Module):
-    def __init__(
-        self,
-        conv_channels: list[int] = [64, 128, 256],
-    ):
+    # def __init__(self, conv_out_channels=64, dropout_prob=0.5): 
+    #     super().__init__()
+
+    #     # Initial conv block
+    #     # self.feature_extractor = nn.Sequential(
+    #     #     nn.Conv1d(in_channels=3, out_channels=conv_out_channels, kernel_size=3, padding=1),
+    #     #     nn.BatchNorm1d(conv_out_channels),
+    #     #     nn.LeakyReLU(),
+    #     #     nn.Dropout(dropout_prob),
+    #     # )
+
+    #     self.feature_extractor = nn.Sequential(
+    #         nn.Conv1d(in_channels=3, out_channels=conv_out_channels, kernel_size=6),
+    #         nn.ReLU(),
+    #         nn.MaxPool1d(kernel_size=2),
+    #         nn.BatchNorm1d(conv_out_channels)
+    #     )
+
+    #     conv_output_length = 77
+
+    #     # # Pass through a fake input to figure out the output size
+    #     dummy_input = torch.zeros(1, 3, 400)
+    #     flat_size = self.feature_extractor(dummy_input).view(1, -1).size(1)
+
+    #     # # Make it all into one now
+    #     # self.model = nn.Sequential(self.feature_extractor, nn.Flatten(), nn.Linear(flat_size, 1))
+    #     self.classifier = nn.Sequential(
+    #         nn.Linear(flat_size, 1028),
+    #         nn.ReLU(),
+    #         nn.Dropout(0.5),
+    #         nn.Linear(1028, 1)  # Output: 2 classes (intoxicated, sober)
+    #     )
+    #     # test_acc: 0.6380000114440918
+
+    def __init__(self, conv_out_channels=64, dropout_prob=0.5): 
         super().__init__()
 
-        # Initial conv block
-        # self.feature_extractor = nn.Sequential(
-        #     nn.Conv1d(in_channels=3, out_channels=conv_out_channels, kernel_size=3, padding=1),
-        #     nn.BatchNorm1d(conv_out_channels),
-        #     nn.LeakyReLU(),
-        #     nn.Dropout(dropout_prob),
-        # )
-
         self.feature_extractor = nn.Sequential(
-            nn.Conv1d(in_channels=3, out_channels=conv_out_channels, kernel_size=6),
+            nn.Conv1d(3, conv_out_channels, kernel_size=3, stride=1, padding=1),  # keep same length
+            nn.BatchNorm1d(conv_out_channels),
             nn.ReLU(),
-            nn.MaxPool1d(kernel_size=2),
-            nn.BatchNorm1d(conv_out_channels)
+
+            nn.Conv1d(conv_out_channels, 128, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm1d(128),
+            nn.ReLU(),
+
+            nn.MaxPool1d(kernel_size=2),  # halves the sequence length
         )
 
-        conv_output_length = 77
-
-        # # Pass through a fake input to figure out the output size
+        # Pass through a fake input to figure out the output size
         dummy_input = torch.zeros(1, 3, 400)
         flat_size = self.feature_extractor(dummy_input).view(1, -1).size(1)
 
-        # # Make it all into one now
-        # self.model = nn.Sequential(self.feature_extractor, nn.Flatten(), nn.Linear(flat_size, 1))
         self.classifier = nn.Sequential(
-            nn.Linear(flat_size, 1028),
+            nn.Flatten(),
+            nn.Linear(flat_size, 256),
             nn.ReLU(),
-            nn.Dropout(0.5),
-            nn.Linear(1028, 1)  # Output: 2 classes (intoxicated, sober)
+            nn.Linear(256, 1)
         )
-        # test_acc: 0.6380000114440918
+
+        self.model = nn.Sequential(self.feature_extractor, nn.Flatten(), self.classifier)
 
 
     def forward(self, x):
         x = x.permute(0, 2, 1)  # (N, 400, 3) -> (N, 3, 400) to make it fit input proper
-        # return self.model(x)
-
-        x = self.feature_extractor(x)
-        x = x.view(x.size(0), -1) # Flatten
-        x = self.classifier(x)
-        return x
+        return self.model(x)
 
 
 class CNNLightning(L.LightningModule):
-    def __init__(
-        self,
-        conv_channels: list[int] = [64, 128, 256, 1024],
-        lr: float = 1e-3,
-        weight_decay: float = 0.0,
-    ):
+    def __init__(self, conv_out_channels=64, dropout_prob=0.5, lr=1e-3, weight_decay=0.0):
         super().__init__()
         self.save_hyperparameters()
 
-        self.model = CNN(
-            conv_channels=conv_channels
-        )
+        self.model = CNN(64, 0.5)
         self.loss_fn = nn.BCEWithLogitsLoss()
 
     def forward(self, x):
